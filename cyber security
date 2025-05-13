@@ -1,0 +1,62 @@
+import bcrypt
+import getpass
+import os
+
+# File to store hashed passwords
+PASSWORD_FILE = "passwords.txt"
+
+def load_users():
+    users = {}
+    if os.path.exists(PASSWORD_FILE):
+        with open(PASSWORD_FILE, "r") as f:
+            for line in f:
+                username, hashed = line.strip().split(":")
+                users[username] = hashed.encode('utf-8')
+    return users
+
+def save_user(username, hashed_pw):
+    with open(PASSWORD_FILE, "a") as f:
+        f.write(f"{username}:{hashed_pw.decode('utf-8')}\n")
+
+def register():
+    users = load_users()
+    username = input("Create username: ")
+    if username in users:
+        print("⚠️ Username already exists.")
+        return
+
+    password = getpass.getpass("Create password: ")
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    save_user(username, hashed_pw)
+    print("✅ Registration successful.")
+
+def login():
+    users = load_users()
+    username = input("Username: ")
+
+    if username not in users:
+        print("❌ Invalid username.")
+        return
+
+    password = getpass.getpass("Password: ")
+    hashed = users[username]
+
+    if bcrypt.checkpw(password.encode('utf-8'), hashed):
+        print("✅ Login successful.")
+    else:
+        print("❌ Invalid password.")
+
+def main():
+    print("🔐 Secure Login System")
+    print("1. Register\n2. Login\n")
+    choice = input("Choose (1 or 2): ")
+
+    if choice == "1":
+        register()
+    elif choice == "2":
+        login()
+    else:
+        print("Invalid choice.")
+
+if __name__ == "__main__":
+    main()
